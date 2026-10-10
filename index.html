@@ -1,0 +1,194 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOLAR SUPERNOVA</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top,#392052,#090817 65%);
+color:white;font-family:Arial,sans-serif;text-align:center;min-height:100vh;padding:18px}
+h1{color:#ffbd59;text-shadow:0 0 18px #ff6a16;letter-spacing:2px}
+.subtitle{color:#d4c5ef}
+.sun{margin:18px auto;width:135px;height:135px;border-radius:50%;
+display:flex;align-items:center;justify-content:center;font-size:65px;
+background:radial-gradient(circle,#fff8ad,#ffb01e 45%,#f44316 70%,transparent 72%);
+filter:drop-shadow(0 0 22px #ff681e);transition:transform .4s}
+.meter{max-width:440px;margin:10px auto}
+.track{height:14px;background:#30243e;border-radius:20px;overflow:hidden;border:1px solid #86659b}
+#energy{height:100%;width:0%;background:linear-gradient(90deg,#ff681e,#ffe66d);transition:width .5s}
+#energyText{font-size:13px;color:#f9d9a0;margin:7px}
+.machine{max-width:490px;margin:20px auto;background:#1b1230;border:2px solid #b77bff;
+border-radius:18px;padding:10px;box-shadow:0 0 25px #7e39ba}
+.reels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.cell{background:linear-gradient(#35234b,#171125);border:1px solid #624578;
+border-radius:8px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
+font-size:clamp(22px,7vw,38px)}
+.info{display:flex;justify-content:space-around;gap:10px;flex-wrap:wrap;margin:14px}
+button{border:0;border-radius:12px;padding:14px 22px;font-weight:bold;font-size:16px;cursor:pointer}
+#spin{background:linear-gradient(90deg,#ff9d27,#ffe16c);color:#321327;min-width:180px}
+button:disabled{opacity:.5}
+.secondary{background:#4a3066;color:white;margin:5px}
+#message{min-height:42px;color:#ffe6a8;font-weight:bold;margin:14px}
+#balance{color:#91ffca;font-weight:bold}
+.supernova{position:fixed;inset:0;z-index:5;display:none;align-items:center;justify-content:center;
+flex-direction:column;background:radial-gradient(circle,#fff 0%,#ffe35a 8%,#ff6a17 25%,#9b24ce 55%,#080616 85%);
+animation:burst 1.8s ease-out}
+.supernova h2{font-size:clamp(32px,9vw,64px);text-shadow:0 0 25px white}
+.supernova p{font-size:22px}
+@keyframes burst{0%{opacity:0;transform:scale(.1)}35%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
+footer{color:#a89ab8;font-size:12px;margin:22px}
+</style>
+</head>
+<body>
+<h1>☀️ SOLAR SUPERNOVA</h1>
+<div class="subtitle">L'énergie stellaire est entre tes mains</div>
+
+<div class="sun" id="sun">☀️</div>
+<div class="meter">
+  <div class="track"><div id="energy"></div></div>
+  <div id="energyText">Énergie solaire : 0 %</div>
+</div>
+
+<div class="machine">
+  <div class="reels" id="reels"></div>
+</div>
+
+<div class="info">
+  <div>Crédits : <span id="balance">1000</span></div>
+  <div>Mise : <span id="bet">10</span></div>
+  <div>Bonus : <span id="free">0</span> tours</div>
+</div>
+
+<button class="secondary" id="less">− Mise</button>
+<button class="secondary" id="more">+ Mise</button>
+<br>
+<button id="spin">LANCER</button>
+<div id="message">Fais tourner les rouleaux et charge le soleil !</div>
+
+<div class="supernova" id="explosion">
+  <h2>🌟 SUPERNOVA ! 🌟</h2>
+  <p>Le bonus solaire est activé !</p>
+</div>
+<footer>Prototype de démonstration · Crédits fictifs uniquement</footer>
+
+<script>
+const symbols = ["🌍","🌙","🪐","☄️","💎","⭐","☀️","🔥"];
+const reels = document.getElementById("reels");
+const balanceEl = document.getElementById("balance");
+const energyEl = document.getElementById("energy");
+const energyText = document.getElementById("energyText");
+const sun = document.getElementById("sun");
+const message = document.getElementById("message");
+const spinBtn = document.getElementById("spin");
+const freeEl = document.getElementById("free");
+const explosion = document.getElementById("explosion");
+
+let balance = 1000, bet = 10, energy = 0, freeSpins = 0;
+let busy = false;
+
+function randomSymbol(){
+  return symbols[Math.floor(Math.random() * symbols.length)];
+}
+
+function makeGrid(){
+  reels.innerHTML = "";
+  const grid = [];
+  for(let i=0;i<15;i++){
+    const s = randomSymbol();
+    grid.push(s);
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.textContent = s;
+    reels.appendChild(cell);
+  }
+  return grid;
+}
+
+function update(){
+  balanceEl.textContent = balance;
+  document.getElementById("bet").textContent = bet;
+  freeEl.textContent = freeSpins;
+  energyEl.style.width = energy + "%";
+  energyText.textContent = "Énergie solaire : " + energy + " %";
+  sun.style.transform = "scale(" + (1 + energy/250) + ")";
+  spinBtn.disabled = busy || (freeSpins === 0 && balance < bet);
+  document.getElementById("less").disabled = busy || bet <= 5;
+  document.getElementById("more").disabled = busy || bet >= 100;
+}
+
+function showSupernova(){
+  busy = true;
+  update();
+  explosion.style.display = "flex";
+  setTimeout(()=>{
+    explosion.style.display = "none";
+    energy = 0;
+    freeSpins = 5;
+    message.textContent = "Supernova ! 5 tours bonus avec gains doublés.";
+    busy = false;
+    update();
+  },1800);
+}
+
+function spin(){
+  if(busy || (freeSpins === 0 && balance < bet)) return;
+  busy = true;
+  if(freeSpins > 0) freeSpins--;
+  else balance -= bet;
+
+  message.textContent = "Les rouleaux tournent...";
+  update();
+
+  setTimeout(()=>{
+    const grid = makeGrid();
+    let win = 0;
+
+    // Évalue les lignes horizontales de gauche à droite.
+    for(let row=0;row<3;row++){
+      const line = [grid[row*5],grid[row*5+1],grid[row*5+2],
+                    grid[row*5+3],grid[row*5+4]];
+      let count = 1;
+      while(count < 5 && line[count] === line[0]) count++;
+      if(count >= 3){
+        win += bet * (count === 3 ? 2 : count === 4 ? 5 : 12);
+      }
+    }
+
+    const suns = grid.filter(s=>s==="☀️").length;
+    const crystals = grid.filter(s=>s==="💎").length;
+    const bonusTriggered = suns >= 3 || energy >= 100;
+
+    // Les soleils et cristaux nourrissent l'énergie.
+    energy = Math.min(100, energy + suns*12 + crystals*5 + 4);
+
+    if(freeSpins > 0) win *= 2;
+    if(win > 0) balance += win;
+
+    message.textContent = win > 0
+      ? "Combinaison gagnante ! +" + win + " crédits fictifs."
+      : "Pas de combinaison cette fois. Le soleil accumule de l'énergie.";
+
+    if(bonusTriggered){
+      showSupernova();
+    } else {
+      busy = false;
+      update();
+    }
+  },650);
+}
+
+document.getElementById("less").onclick = ()=>{
+  bet = Math.max(5,bet-5); update();
+};
+document.getElementById("more").onclick = ()=>{
+  bet = Math.min(100,bet+5); update();
+};
+spinBtn.onclick = spin;
+
+makeGrid();
+update();
+</script>
+</body>
+</html>
